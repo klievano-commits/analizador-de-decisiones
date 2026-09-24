@@ -32,7 +32,7 @@
       line-height: 1.5;
     }
 
-    /* Top Navigation Header */
+    /* Header */
     header {
       background: #0d1117;
       color: #ffffff;
@@ -129,11 +129,6 @@
       padding: 28px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
       margin-bottom: 24px;
-      transition: border-color 0.2s ease;
-    }
-
-    .card:hover {
-      border-color: #cbd5e1;
     }
 
     .card-header {
@@ -234,10 +229,7 @@
       box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
     }
 
-    .btn-primary:hover {
-      opacity: 0.92;
-      transform: translateY(-1px);
-    }
+    .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
 
     .btn-secondary {
       background: #f1f5f9;
@@ -245,9 +237,7 @@
       border: 1px solid #cbd5e1;
     }
 
-    .btn-secondary:hover {
-      background: #e2e8f0;
-    }
+    .btn-secondary:hover { background: #e2e8f0; }
 
     .btn-danger {
       background: #fef2f2;
@@ -255,11 +245,9 @@
       border: 1px solid #fecaca;
     }
 
-    .btn-danger:hover {
-      background: #fee2e2;
-    }
+    .btn-danger:hover { background: #fee2e2; }
 
-    /* Dynamic Output & Dashboards */
+    /* Output & Dashboards */
     .status-badge {
       display: inline-block;
       padding: 6px 14px;
@@ -302,7 +290,6 @@
       margin-top: 2px;
     }
 
-    /* Progress Ring / Bar */
     .progress-bar-bg {
       width: 100%;
       height: 8px;
@@ -318,7 +305,6 @@
       transition: width 0.4s ease;
     }
 
-    /* Perspectives List */
     .perspective-row {
       padding: 12px 0;
       border-bottom: 1px solid #f1f5f9;
@@ -344,7 +330,6 @@
 
     .perspective-asks li { margin-bottom: 4px; }
 
-    /* Warnings / Alerts */
     .alert-box {
       background: #fffbeb;
       border-left: 4px solid #f59e0b;
@@ -355,7 +340,6 @@
 
     .alert-box ul { padding-left: 20px; font-size: 0.88rem; color: #b45309; }
 
-    /* History Table */
     .table-responsive {
       overflow-x: auto;
       margin-top: 16px;
@@ -410,7 +394,7 @@
     <div class="notice-bar">
       <span>🛡️</span>
       <div>
-        <strong>Modo Privado Activo:</strong> Los datos se procesan localmente en tu navegador mediante reglas lógicas explícitas. No se envían datos a servidores externos ni a modelos de IA.
+        <strong>Modo Privado Activo:</strong> Los datos se procesan localmente en tu navegador mediante reglas lógicas explícitas. No se envían datos a servidores externos.
       </div>
     </div>
 
@@ -498,9 +482,9 @@
             </div>
 
             <div class="button-group">
-              <button type="button" id="btn-analyze" class="btn btn-primary">📊 Analizar Iniciativa</button>
-              <button type="button" id="btn-sample" class="btn btn-secondary">⚡ Cargar Ejemplo</button>
-              <button type="button" id="btn-clear" class="btn btn-danger">🗑️ Limpiar</button>
+              <button type="button" id="btn-analyze" onclick="renderAnalysis()" class="btn btn-primary">📊 Analizar Iniciativa</button>
+              <button type="button" id="btn-sample" onclick="loadSampleData()" class="btn btn-secondary">⚡ Cargar Ejemplo</button>
+              <button type="button" id="btn-clear" onclick="clearAllFields()" class="btn btn-danger">🗑️ Limpiar</button>
             </div>
           </form>
         </div>
@@ -552,9 +536,9 @@
           </div>
 
           <div class="button-group">
-            <button type="button" id="btn-save" class="btn btn-primary">💾 Guardar Versión</button>
-            <button type="button" id="btn-export" class="btn btn-secondary">📥 Descargar JSON</button>
-            <button type="button" id="btn-print" class="btn btn-secondary">🖨️ Imprimir</button>
+            <button type="button" id="btn-save" onclick="saveCurrentVersion()" class="btn btn-primary">💾 Guardar Versión</button>
+            <button type="button" id="btn-export" onclick="exportJSON()" class="btn btn-secondary">📥 Descargar JSON</button>
+            <button type="button" id="btn-print" onclick="triggerPrint()" class="btn btn-secondary">🖨️ Imprimir</button>
           </div>
 
           <div id="status-toast" role="status"></div>
@@ -573,12 +557,10 @@
         Las versiones se almacenan de forma segura en la memoria local de tu navegador.
       </p>
 
-      <div class="table-responsive" id="history-container">
-        <!-- Renderizado dinámico -->
-      </div>
+      <div class="table-responsive" id="history-container"></div>
 
       <div class="button-group" style="margin-top: 16px;">
-        <button type="button" id="btn-wipe" class="btn btn-danger">Eliminar Todo el Historial</button>
+        <button type="button" id="btn-wipe" onclick="wipeHistory()" class="btn btn-danger">Eliminar Todo el Historial</button>
       </div>
     </section>
   </main>
@@ -586,13 +568,11 @@
   <script>
     'use strict';
 
-    // Configuración y Referencias
     const FIELD_IDS = ['title','problem','users','proposal','alternatives','urgency','scope','data','risks','owner','metric','resources'];
     const $ = id => document.getElementById(id);
     const clean = str => String(str || '').trim();
     const escapeHTML = str => String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-    // Preguntas guía por perspectiva
     const PERSPECTIVES = [
       { name: 'Experiencia y Acceso', items: [['problem','¿Qué evidencia demuestra la necesidad?'], ['users','¿Quiénes se benefician o podrían ser excluidos?'], ['proposal','¿Cómo se transforma la experiencia del usuario?']] },
       { name: 'Aprendizaje y Cambio', items: [['users','¿Qué grupos requieren acompañamiento especial?'], ['proposal','¿Qué habilidades nuevas exige esta propuesta?'], ['metric','¿Cómo medirán la adopción del cambio?']] },
@@ -602,12 +582,15 @@
       { name: 'Impacto y Evidencia', items: [['problem','¿Cuál es la línea base de medición?'], ['metric','¿Qué indicador define el éxito final?'], ['alternatives','¿Contra qué parámetro se comparará el resultado?']] }
     ];
 
-    // Obtener valores del formulario
     function getFormData() {
-      return Object.fromEntries(FIELD_IDS.map(id => [id, $(id).value.trim()]));
+      const data = {};
+      FIELD_IDS.forEach(id => {
+        const el = $(id);
+        data[id] = el ? el.value.trim() : '';
+      });
+      return data;
     }
 
-    // Evaluador Determinista de Reglas
     function evaluateInitiative(data) {
       const essentialFields = ['title', 'problem', 'users', 'proposal'];
       const missingEssential = essentialFields.filter(k => !clean(data[k]));
@@ -629,7 +612,6 @@
       if (!data.metric) flags.push('No hay indicadores ni metas definidas.');
       if (!data.alternatives) flags.push('No se han documentado alternativas previas.');
 
-      // Alerta de datos sensibles
       const fullContent = Object.values(data).join(' ');
       if (/(?:historia(?:s)? clínica(?:s)?|nómina|disciplinari|evaluaciones? de desempeño|dato(?:s)? sensible(?:s)?|identificables?)/i.test(fullContent)) {
         flags.unshift('🚨 Posible presencia de datos sensibles o confidenciales.');
@@ -642,7 +624,6 @@
       return { missingEssential, completedCount, perResults, flags, urgency, scope, readiness };
     }
 
-    // Renderizar resultados en pantalla
     function renderAnalysis() {
       const data = getFormData();
       const analysis = evaluateInitiative(data);
@@ -674,11 +655,12 @@
       `;
 
       if (analysis.missingEssential.length) {
+        const labels = {title:'Nombre', problem:'Problema', users:'Beneficiarios', proposal:'Propuesta'};
         html += `
           <div class="alert-box" style="background:#fef2f2; border-color:#ef4444; color:#991b1b; margin-bottom:16px;">
             <strong>Campos requeridos faltantes:</strong>
             <ul style="margin-top:6px;">
-              ${analysis.missingEssential.map(k => `<li>${escapeHTML(({title:'Nombre',problem:'Problema',users:'Beneficiarios',proposal:'Propuesta'})[k])}</li>`).join('')}
+              ${analysis.missingEssential.map(k => `<li>${escapeHTML(labels[k] || k)}</li>`).join('')}
             </ul>
           </div>
         `;
@@ -711,13 +693,58 @@
         `;
       }
 
-      $('result-display').innerHTML = html;
-      $('status-toast').textContent = 'Análisis actualizado correctamente.';
+      const display = $('result-display');
+      if (display) display.innerHTML = html;
+      
+      const toast = $('status-toast');
+      if (toast) toast.textContent = '✓ Análisis actualizado correctamente.';
+      
       return { data, analysis };
     }
 
-    // Persistencia en LocalStorage
-    const STORAGE_KEY = 'gemini_lab_decisiones_v2';
+    function clearAllFields() {
+      FIELD_IDS.forEach(id => {
+        const el = $(id);
+        if (el) el.value = el.tagName === 'SELECT' ? '0' : '';
+      });
+      if ($('decision'))$('decision').value = '';
+      if ($('rationale'))$('rationale').value = '';
+      if ($('reviewer'))$('reviewer').value = '';
+      if ($('result-display')) {$('result-display').innerHTML = '<p style="color:var(--text-muted); font-size: 0.95rem;">Formulario reajustado. Completa datos y pulsa Analizar.</p>';
+      }
+      if ($('status-toast'))$('status-toast').textContent = 'Formulario vaciado.';
+    }
+
+    function loadSampleData() {
+      const sample = {
+        title: 'Asistente Institucional para Trámites de Estudiantes',
+        problem: 'En una muestra de 50 consultas de estudiantes, 22 llegaron con documentos faltantes, generando un retraso promedio de 3 días hábiles en la gestión.',
+        users: 'Estudiantes universitarios de pregrado y personal administrativo de atención en ventanilla.',
+        proposal: 'Desplegar un portal guía que valida requisitos previos mediante preguntas paso a paso antes de permitir el envío del trámite.',
+        alternatives: 'Crear un folleto en PDF o actualizar la lista de preguntas frecuentes estáticas.',
+        urgency: '2',
+        scope: '2',
+        data: 'Reglamentos estudiantiles vigentes y guías de trámites aprobadas por la Secretaría General. Sin datos personales.',
+        risks: 'Riesgo de información desactualizada si cambian los reglamentos. Se requiere auditoría mensual de contenidos.',
+        owner: 'Oficina de Admisiones + Dirección de Tecnología',
+        metric: 'Línea base: 44% de trámites incompletos. Meta: reducir a menos del 15% en el primer semestre.',
+        resources: 'Piloto de 6 semanas, 1 gestor de contenidos a medio tiempo y servidor web existente.'
+      };
+
+      FIELD_IDS.forEach(id => {
+        const el = $(id);
+        if (el) el.value = sample[id] || '';
+      });
+
+      if ($('decision'))$('decision').value = 'Explorar en piloto';
+      if ($('rationale'))$('rationale').value = 'Aprobado para prueba de 6 semanas con evaluación intermedia de métricas.';
+      if ($('reviewer'))$('reviewer').value = 'Comité de Innovación';
+
+      renderAnalysis();
+    }
+
+    // Persistencia LocalStorage
+    const STORAGE_KEY = 'gemini_lab_decisiones_v3';
 
     function getSavedVersions() {
       try {
@@ -727,7 +754,11 @@
     }
 
     function saveVersions(versions) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(versions));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(versions));
+      } catch (e) {
+        console.warn('LocalStorage inaccesible:', e);
+      }
     }
 
     function createSnapshot() {
@@ -739,16 +770,55 @@
         initiative: data,
         analysis: analysis,
         humanDecision: {
-          decision: $('decision').value,
-          rationale: clean($('rationale').value),
-          reviewer: clean($('reviewer').value)
+          decision: $('decision') ?$('decision').value : '',
+          rationale: clean($('rationale') ?$('rationale').value : ''),
+          reviewer: clean($('reviewer') ?$('reviewer').value : '')
         }
       };
+    }
+
+    function saveCurrentVersion() {
+      const snap = createSnapshot();
+      if (!snap.initiative.title) {
+        if ($('status-toast'))$('status-toast').textContent = '⚠️ Ingresa al menos el nombre de la iniciativa antes de guardar.';
+        return;
+      }
+      const list = getSavedVersions();
+      list.unshift(snap);
+      saveVersions(list.slice(0, 20));
+      renderHistoryTable();
+      if ($('status-toast'))$('status-toast').textContent = '✓ Versión guardada en el historial local.';
+    }
+
+    function exportJSON() {
+      const snap = createSnapshot();
+      const blob = new Blob([JSON.stringify(snap, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `gemini-dictamen-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      if ($('status-toast'))$('status-toast').textContent = '✓ Informe JSON generado y descargado.';
+    }
+
+    function triggerPrint() {
+      renderAnalysis();
+      window.print();
+    }
+
+    function wipeHistory() {
+      if (confirm('¿Deseas eliminar todas las versiones guardadas en este navegador?')) {
+        try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+        renderHistoryTable();
+        if ($('status-toast'))$('status-toast').textContent = 'Historial limpiado.';
+      }
     }
 
     function renderHistoryTable() {
       const versions = getSavedVersions();
       const container = $('history-container');
+      if (!container) return;
 
       if (!versions.length) {
         container.innerHTML = '<p style="color:var(--text-muted); padding:12px 0;">No hay revisiones guardadas aún.</p>';
@@ -771,11 +841,11 @@
             ${versions.map((v, idx) => `
               <tr>
                 <td>${new Date(v.createdAt).toLocaleDateString('es-CO', { hour: '2-digit', minute: '2-digit' })}</td>
-                <td><strong>${escapeHTML(v.initiative.title || 'Sin título')}</strong></td>
-                <td>${v.analysis.readiness}%</td>
-                <td>${v.analysis.flags.length}</td>
-                <td><span class="status-badge ${v.humanDecision.decision ? 'badge-success' : 'badge-warning'}">${escapeHTML(v.humanDecision.decision || 'Pendiente')}</span></td>
-                <td><button type="button" class="btn btn-secondary" style="padding:4px 10px; font-size:0.8rem;" data-load="${idx}">Cargar</button></td>
+                <td><strong>${escapeHTML(v.initiative?.title || 'Sin título')}</strong></td>
+                <td>${v.analysis?.readiness || 0}%</td>
+                <td>${v.analysis?.flags?.length || 0}</td>
+                <td><span class="status-badge ${v.humanDecision?.decision ? 'badge-success' : 'badge-warning'}">${escapeHTML(v.humanDecision?.decision || 'Pendiente')}</span></td>
+                <td><button type="button" class="btn btn-secondary" style="padding:4px 10px; font-size:0.8rem;" onclick="loadFromHistory(${idx})">Cargar</button></td>
               </tr>
             `).join('')}
           </tbody>
@@ -785,96 +855,28 @@
       container.innerHTML = html;
     }
 
-    // Eventos e Interacciones
-    $('btn-analyze').onclick = renderAnalysis;
-
-    $('btn-save').onclick = () => {
-      const snap = createSnapshot();
-      if (!snap.initiative.title) {
-        $('status-toast').textContent = '⚠️ Ingresa al menos el nombre de la iniciativa antes de guardar.';
-        return;
-      }
-      const list = getSavedVersions();
-      list.unshift(snap);
-      saveVersions(list.slice(0, 20));
-      renderHistoryTable();
-      $('status-toast').textContent = '✓ Versión guardada en el historial local.';
-    };
-
-    $('btn-export').onclick = () => {
-      const snap = createSnapshot();
-      const blob = new Blob([JSON.stringify(snap, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `gemini-dictamen-${Date.now()}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      $('status-toast').textContent = '✓ Informe JSON generado y descargado.';
-    };
-
-    $('btn-print').onclick = () => {
-      renderAnalysis();
-      window.print();
-    };
-
-    $('history-container').onclick = (e) => {
-      const btn = e.target.closest('[data-load]');
-      if (!btn) return;
-      const index = Number(btn.dataset.load);
+    function loadFromHistory(index) {
       const snap = getSavedVersions()[index];
       if (!snap) return;
 
-      FIELD_IDS.forEach(id => $(id).value = snap.initiative[id] \vert{}\vert{} '');$('decision').value = snap.humanDecision.decision || '';
-      $('rationale').value = snap.humanDecision.rationale \vert{}\vert{} '';$('reviewer').value = snap.humanDecision.reviewer || '';
+      FIELD_IDS.forEach(id => {
+        const el = $(id);
+        if (el) el.value = snap.initiative?.[id] || '';
+      });
+
+      if ($('decision'))$('decision').value = snap.humanDecision?.decision || '';
+      if ($('rationale'))$('rationale').value = snap.humanDecision?.rationale || '';
+      if ($('reviewer'))$('reviewer').value = snap.humanDecision?.reviewer || '';
 
       renderAnalysis();
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      $('status-toast').textContent = '✓ Registro cargado en el formulario.';
-    };
+      if ($('status-toast'))$('status-toast').textContent = '✓ Registro cargado en el formulario.';
+    }
 
-    $('btn-wipe').onclick = () => {
-      if (confirm('¿Deseas eliminar todas las versiones guardadas en este navegador?')) {
-        localStorage.removeItem(STORAGE_KEY);
-        renderHistoryTable();
-        $('status-toast').textContent = 'Historial limpiado.';
-      }
-    };
-
-    $('btn-clear').onclick = () => {
-      FIELD_IDS.forEach(id => {
-        const el = $(id);
-        el.value = el.tagName === 'SELECT' ? '0' : '';
-      });
-      $('decision').value = '';$('rationale').value = '';
-      $('reviewer').value = '';$('result-display').innerHTML = '<p style="color:var(--text-muted);">Formulario reajustado. Completa datos y pulsa Analizar.</p>';
-      $('status-toast').textContent = 'Formulario vaciado.';
-    };
-
-    $('btn-sample').onclick = () => {
-      const sample = {
-        title: 'Asistente Institucional para Trámites de Estudiantes',
-        problem: 'En una muestra de 50 consultas de estudiantes, 22 llegaron con documentos faltantes, generando un retraso promedio de 3 días hábiles en la gestión.',
-        users: 'Estudiantes universitarios de pregrado y personal administrativo de atención en ventanilla.',
-        proposal: 'Desplegar un portal guía que valida requisitos previos mediante preguntas paso a paso antes de permitir el envío del trámite.',
-        alternatives: 'Crear un folleto en PDF o actualizar la lista de preguntas frecuentes estáticas.',
-        urgency: '2',
-        scope: '2',
-        data: 'Reglamentos estudiantiles vigentes y guías de trámites aprobadas por la Secretaría General. Sin datos personales.',
-        risks: 'Riesgo de información desactualizada si cambian los reglamentos. Se requiere auditoría mensual de contenidos.',
-        owner: 'Oficina de Admisiones + Dirección de Tecnología',
-        metric: 'Línea base: 44% de trámites incompletos. Meta: reducir a menos del 15% en el primer semestre.',
-        resources: 'Piloto de 6 semanas, 1 gestor de contenidos a medio tiempo y servidor web existente.'
-      };
-
-      FIELD_IDS.forEach(id => $(id).value = sample[id] || '');
-      $('decision').value = 'Explorar en piloto';$('rationale').value = 'Aprobado para prueba de 6 semanas con evaluación intermedia de métricas.';
-      $('reviewer').value = 'Comité de Innovación';
-      renderAnalysis();
-    };
-
-    // Inicializar la tabla al cargar
-    renderHistoryTable();
+    // Carga inicial
+    document.addEventListener('DOMContentLoaded', () => {
+      renderHistoryTable();
+    });
   </script>
 </body>
 </html>
