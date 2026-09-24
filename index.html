@@ -1,0 +1,880 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gemini · Laboratorio de Decisiones</title>
+  <style>
+    :root {
+      --bg-main: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      
+      /* Gemini Brand Gradients & Colors */
+      --gemini-gradient: linear-gradient(135deg, #1a73e8 0%, #8b5cf6 50%, #d946ef 100%);
+      --gemini-glow: rgba(139, 92, 246, 0.15);
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text-main);
+      background-color: var(--bg-main);
+      line-height: 1.5;
+    }
+
+    /* Top Navigation Header */
+    header {
+      background: #0d1117;
+      color: #ffffff;
+      padding: 32px 24px;
+      border-bottom: 1px solid #21262d;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -10%;
+      width: 50%;
+      height: 200%;
+      background: var(--gemini-gradient);
+      opacity: 0.25;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #a78bfa;
+      border: 1px solid rgba(167, 139, 250, 0.3);
+      margin-bottom: 12px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: var(--gemini-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: #94a3b8;
+      max-width: 700px;
+      font-size: 1.05rem;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1200px;
+      margin: 28px auto;
+      padding: 0 20px 60px;
+    }
+
+    .notice-bar {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      margin-bottom: 24px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* Layout Grid */
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+      margin-bottom: 24px;
+      transition: border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: #cbd5e1;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 12px;
+    }
+
+    .card-header h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .step-number {
+      background: var(--gemini-gradient);
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    label span.req { color: #ef4444; }
+
+    input, textarea, select {
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.95rem;
+      padding: 11px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      background: #f8fafc;
+      color: var(--text-main);
+      transition: all 0.2s ease;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      background: #ffffff;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+    }
+
+    textarea { min-height: 85px; resize: vertical; }
+
+    .inline-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* Buttons */
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 18px;
+      font-size: 0.92rem;
+      font-weight: 650;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--gemini-gradient);
+      color: white;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    }
+
+    .btn-primary:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .btn-danger {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .btn-danger:hover {
+      background: #fee2e2;
+    }
+
+    /* Dynamic Output & Dashboards */
+    .status-badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .badge-success { background: #d1fae5; color: #065f46; }
+    .badge-warning { background: #fef3c7; color: #92400e; }
+    .badge-danger { background: #fee2e2; color: #991b1b; }
+
+    .metrics-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .metric-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .metric-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #4f46e5;
+    }
+
+    .metric-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* Progress Ring / Bar */
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--gemini-gradient);
+      transition: width 0.4s ease;
+    }
+
+    /* Perspectives List */
+    .perspective-row {
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .perspective-row:last-child { border-bottom: none; }
+
+    .perspective-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .perspective-asks {
+      margin-top: 8px;
+      padding-left: 20px;
+      font-size: 0.88rem;
+      color: #475569;
+    }
+
+    .perspective-asks li { margin-bottom: 4px; }
+
+    /* Warnings / Alerts */
+    .alert-box {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-top: 16px;
+    }
+
+    .alert-box ul { padding-left: 20px; font-size: 0.88rem; color: #b45309; }
+
+    /* History Table */
+    .table-responsive {
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: #f8fafc;
+      padding: 12px;
+      font-weight: 650;
+      color: #475569;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+    }
+
+    #status-toast {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #059669;
+      margin-top: 12px;
+      min-height: 1.2em;
+    }
+
+    @media (max-width: 900px) {
+      .layout-grid { grid-template-columns: 1fr; }
+      .metrics-summary { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-container">
+      <div class="brand-badge">✨ Powered by Gemini Design</div>
+      <h1>Laboratorio de Decisiones</h1>
+      <p>Marco de evaluación determinista para estructurar iniciativas institucionales, auditar completitud e identificar vacíos críticos antes de tomar decisiones.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="notice-bar">
+      <span>🛡️</span>
+      <div>
+        <strong>Modo Privado Activo:</strong> Los datos se procesan localmente en tu navegador mediante reglas lógicas explícitas. No se envían datos a servidores externos ni a modelos de IA.
+      </div>
+    </div>
+
+    <div class="layout-grid">
+      
+      <!-- COLUMNA IZQUIERDA: FORMULARIO -->
+      <section>
+        <div class="card">
+          <div class="card-header">
+            <div class="step-number">1</div>
+            <h2>Ficha de la Iniciativa</h2>
+          </div>
+
+          <form id="initiative-form" onsubmit="return false;">
+            <div class="form-group">
+              <label for="title">Nombre de la iniciativa <span class="req">*</span></label>
+              <input id="title" maxlength="100" placeholder="Ej. Asistente para orientación de trámites">
+            </div>
+
+            <div class="form-group">
+              <label for="problem">Problema y evidencia <span class="req">*</span></label>
+              <textarea id="problem" maxlength="1800" placeholder="¿Qué ocurre actualmente? Describe observaciones, datos numéricos o evidencias."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="users">Personas beneficiarias <span class="req">*</span></label>
+              <textarea id="users" maxlength="600" placeholder="Grupos, roles o usuarios beneficiados. No incluyas nombres reales."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="proposal">Solución propuesta <span class="req">*</span></label>
+              <textarea id="proposal" maxlength="1200" placeholder="¿Qué cambiará concretamente y cómo operará?"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="alternatives">Alternativas consideradas</label>
+              <textarea id="alternatives" maxlength="900" placeholder="Otras opciones evaluadas (ej. ajustar el proceso actual, piloto acotado)."></textarea>
+            </div>
+
+            <div class="inline-grid">
+              <div class="form-group">
+                <label for="urgency">Urgencia</label>
+                <select id="urgency">
+                  <option value="0">0 - Sin justificar</option>
+                  <option value="1">1 - Planificable</option>
+                  <option value="2">2 - Próxima fecha clave</option>
+                  <option value="3">3 - Impacto inmediato</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="scope">Alcance estimado</label>
+                <select id="scope">
+                  <option value="0">0 - Sin estimar</option>
+                  <option value="1">1 - Un equipo</option>
+                  <option value="2">2 - Varias áreas</option>
+                  <option value="3">3 - Toda la comunidad</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="data">Origen y tipo de datos</label>
+              <textarea id="data" maxlength="800" placeholder="Ej. Documentación pública aprobada, preguntas frecuentes."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="risks">Riesgos y mitigación</label>
+              <textarea id="risks" maxlength="900" placeholder="Privacidad, sesgos, accesibilidad, margen de error..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="owner">Área responsable</label>
+              <input id="owner" maxlength="160" placeholder="Ej. Gestión Documental + TI">
+            </div>
+
+            <div class="form-group">
+              <label for="metric">Indicador clave de éxito</label>
+              <textarea id="metric" maxlength="600" placeholder="Ej. Punto de partida: 30% trámites correctos. Meta: 75%."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="resources">Recursos requeridos</label>
+              <textarea id="resources" maxlength="700" placeholder="Tiempo, personal, presupuesto, infraestructura..."></textarea>
+            </div>
+
+            <div class="button-group">
+              <button type="button" id="btn-analyze" class="btn btn-primary">📊 Analizar Iniciativa</button>
+              <button type="button" id="btn-sample" class="btn btn-secondary">⚡ Cargar Ejemplo</button>
+              <button type="button" id="btn-clear" class="btn btn-danger">🗑️ Limpiar</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- COLUMNA DERECHA: ANÁLISIS Y DECISIÓN -->
+      <section>
+        <!-- Tarjeta de Lectura -->
+        <div class="card">
+          <div class="card-header">
+            <div class="step-number">2</div>
+            <h2>Análisis Interdisciplinar</h2>
+          </div>
+
+          <div id="result-display">
+            <p style="color: var(--text-muted); font-size: 0.95rem;">
+              Diligencia el formulario o carga el ejemplo y presiona <strong>«Analizar Iniciativa»</strong> para generar la evaluación.
+            </p>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Decisión -->
+        <div class="card">
+          <div class="card-header">
+            <div class="step-number">3</div>
+            <h2>Dictamen del Equipo</h2>
+          </div>
+
+          <div class="form-group">
+            <label for="decision">Decisión Tomada</label>
+            <select id="decision">
+              <option value="">-- Seleccionar Estado --</option>
+              <option value="Explorar en piloto">Explorar en piloto</option>
+              <option value="Solicitar información adicional">Solicitar información adicional</option>
+              <option value="Reformular propuesta">Reformular propuesta</option>
+              <option value="Posponer">Posponer</option>
+              <option value="Descartar justificadamente">Descartar justificadamente</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="rationale">Justificación y Condiciones</label>
+            <textarea id="rationale" maxlength="1200" placeholder="Argumentación del equipo e hitos requeridos para proceder."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="reviewer">Rol o Comité Validador</label>
+            <input id="reviewer" maxlength="100" placeholder="Ej. Comité de Transformación Digital">
+          </div>
+
+          <div class="button-group">
+            <button type="button" id="btn-save" class="btn btn-primary">💾 Guardar Versión</button>
+            <button type="button" id="btn-export" class="btn btn-secondary">📥 Descargar JSON</button>
+            <button type="button" id="btn-print" class="btn btn-secondary">🖨️ Imprimir</button>
+          </div>
+
+          <div id="status-toast" role="status"></div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- TABLA DE HISTORIAL -->
+    <section class="card" style="margin-top: 24px;">
+      <div class="card-header">
+        <div class="step-number">4</div>
+        <h2>Historial de Revisiones</h2>
+      </div>
+      <p style="font-size: 0.88rem; color: var(--text-muted);">
+        Las versiones se almacenan de forma segura en la memoria local de tu navegador.
+      </p>
+
+      <div class="table-responsive" id="history-container">
+        <!-- Renderizado dinámico -->
+      </div>
+
+      <div class="button-group" style="margin-top: 16px;">
+        <button type="button" id="btn-wipe" class="btn btn-danger">Eliminar Todo el Historial</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    'use strict';
+
+    // Configuración y Referencias
+    const FIELD_IDS = ['title','problem','users','proposal','alternatives','urgency','scope','data','risks','owner','metric','resources'];
+    const $ = id => document.getElementById(id);
+    const clean = str => String(str || '').trim();
+    const escapeHTML = str => String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+    // Preguntas guía por perspectiva
+    const PERSPECTIVES = [
+      { name: 'Experiencia y Acceso', items: [['problem','¿Qué evidencia demuestra la necesidad?'], ['users','¿Quiénes se benefician o podrían ser excluidos?'], ['proposal','¿Cómo se transforma la experiencia del usuario?']] },
+      { name: 'Aprendizaje y Cambio', items: [['users','¿Qué grupos requieren acompañamiento especial?'], ['proposal','¿Qué habilidades nuevas exige esta propuesta?'], ['metric','¿Cómo medirán la adopción del cambio?']] },
+      { name: 'Tecnología y Datos', items: [['data','¿Qué datos se consumen y cuál es su autorización?'], ['resources','¿Qué soporte técnico mantendrá la solución?'], ['proposal','¿Se puede realizar una prueba piloto pequeña?']] },
+      { name: 'Ética y Privacidad', items: [['data','¿Existen datos sensibles que deban anonimizarse?'], ['risks','¿Cómo se previenen sesgos y fallos en la salida?'], ['owner','¿Quién asume la responsabilidad operativa?']] },
+      { name: 'Operación y Sostenibilidad', items: [['owner','¿Qué áreas colaboran y lideran la ejecución?'], ['resources','¿Es económicamente viable a largo plazo?'], ['alternatives','¿Qué opciones más sencillas se descartaron?']] },
+      { name: 'Impacto y Evidencia', items: [['problem','¿Cuál es la línea base de medición?'], ['metric','¿Qué indicador define el éxito final?'], ['alternatives','¿Contra qué parámetro se comparará el resultado?']] }
+    ];
+
+    // Obtener valores del formulario
+    function getFormData() {
+      return Object.fromEntries(FIELD_IDS.map(id => [id, $(id).value.trim()]));
+    }
+
+    // Evaluador Determinista de Reglas
+    function evaluateInitiative(data) {
+      const essentialFields = ['title', 'problem', 'users', 'proposal'];
+      const missingEssential = essentialFields.filter(k => !clean(data[k]));
+      
+      const checkFields = ['problem', 'users', 'proposal', 'alternatives', 'data', 'risks', 'owner', 'metric', 'resources'];
+      const completedCount = checkFields.filter(k => clean(data[k])).length;
+      
+      const perResults = PERSPECTIVES.map(p => ({
+        name: p.name,
+        answered: p.items.filter(([k]) => clean(data[k])).length,
+        total: p.items.length,
+        pendingQuestions: p.items.filter(([k]) => !clean(data[k])).map(([, q]) => q)
+      }));
+
+      const flags = [];
+      if (!data.data) flags.push('Falta especificar la fuente u origen de los datos.');
+      if (!data.risks) flags.push('No se han definido los riesgos ni medidas de mitigación.');
+      if (!data.owner) flags.push('Falta asignar la coordinación o área responsable.');
+      if (!data.metric) flags.push('No hay indicadores ni metas definidas.');
+      if (!data.alternatives) flags.push('No se han documentado alternativas previas.');
+
+      // Alerta de datos sensibles
+      const fullContent = Object.values(data).join(' ');
+      if (/(?:historia(?:s)? clínica(?:s)?|nómina|disciplinari|evaluaciones? de desempeño|dato(?:s)? sensible(?:s)?|identificables?)/i.test(fullContent)) {
+        flags.unshift('🚨 Posible presencia de datos sensibles o confidenciales.');
+      }
+
+      const urgency = Number(data.urgency) || 0;
+      const scope = Number(data.scope) || 0;
+      const readiness = Math.round((completedCount / checkFields.length) * 100);
+
+      return { missingEssential, completedCount, perResults, flags, urgency, scope, readiness };
+    }
+
+    // Renderizar resultados en pantalla
+    function renderAnalysis() {
+      const data = getFormData();
+      const analysis = evaluateInitiative(data);
+
+      let badgeHTML = analysis.missingEssential.length
+        ? '<span class="status-badge badge-danger">Incompleto</span>'
+        : analysis.flags.length
+        ? '<span class="status-badge badge-warning">Requiere Atención</span>'
+        : '<span class="status-badge badge-success">Listo para Evaluación</span>';
+
+      let html = `
+        ${badgeHTML}
+        
+        <div class="metrics-summary">
+          <div class="metric-card">
+            <div class="metric-value">${analysis.readiness}%</div>
+            <div class="metric-label">Completitud</div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${analysis.readiness}%"></div></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">${analysis.urgency}/3</div>
+            <div class="metric-label">Urgencia</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">${analysis.scope}/3</div>
+            <div class="metric-label">Alcance</div>
+          </div>
+        </div>
+      `;
+
+      if (analysis.missingEssential.length) {
+        html += `
+          <div class="alert-box" style="background:#fef2f2; border-color:#ef4444; color:#991b1b; margin-bottom:16px;">
+            <strong>Campos requeridos faltantes:</strong>
+            <ul style="margin-top:6px;">
+              ${analysis.missingEssential.map(k => `<li>${escapeHTML(({title:'Nombre',problem:'Problema',users:'Beneficiarios',proposal:'Propuesta'})[k])}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      html += `<h3 style="font-size:1.05rem; margin: 16px 0 8px;">Evaluación por Dimensiones</h3>`;
+      
+      html += analysis.perResults.map(p => `
+        <div class="perspective-row">
+          <div class="perspective-title">
+            <span>${escapeHTML(p.name)}</span>
+            <small style="color:var(--text-muted);">${p.answered}/${p.total} completados</small>
+          </div>
+          ${p.pendingQuestions.length ? `
+            <ul class="perspective-asks">
+              ${p.pendingQuestions.map(q => `<li>${escapeHTML(q)}</li>`).join('')}
+            </ul>
+          ` : '<p style="font-size:0.85rem; color:#10b981; margin-top:4px;">✓ Aspectos clave cubiertos.</p>'}
+        </div>
+      `).join('');
+
+      if (analysis.flags.length) {
+        html += `
+          <div class="alert-box">
+            <strong>Señales de Atención / Alertas:</strong>
+            <ul>
+              ${analysis.flags.map(f => `<li>${escapeHTML(f)}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      $('result-display').innerHTML = html;
+      $('status-toast').textContent = 'Análisis actualizado correctamente.';
+      return { data, analysis };
+    }
+
+    // Persistencia en LocalStorage
+    const STORAGE_KEY = 'gemini_lab_decisiones_v2';
+
+    function getSavedVersions() {
+      try {
+        const item = localStorage.getItem(STORAGE_KEY);
+        return item ? JSON.parse(item) : [];
+      } catch { return []; }
+    }
+
+    function saveVersions(versions) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(versions));
+    }
+
+    function createSnapshot() {
+      const data = getFormData();
+      const analysis = evaluateInitiative(data);
+      return {
+        id: Date.now(),
+        createdAt: new Date().toISOString(),
+        initiative: data,
+        analysis: analysis,
+        humanDecision: {
+          decision: $('decision').value,
+          rationale: clean($('rationale').value),
+          reviewer: clean($('reviewer').value)
+        }
+      };
+    }
+
+    function renderHistoryTable() {
+      const versions = getSavedVersions();
+      const container = $('history-container');
+
+      if (!versions.length) {
+        container.innerHTML = '<p style="color:var(--text-muted); padding:12px 0;">No hay revisiones guardadas aún.</p>';
+        return;
+      }
+
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Iniciativa</th>
+              <th>Documentación</th>
+              <th>Alertas</th>
+              <th>Decisión</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${versions.map((v, idx) => `
+              <tr>
+                <td>${new Date(v.createdAt).toLocaleDateString('es-CO', { hour: '2-digit', minute: '2-digit' })}</td>
+                <td><strong>${escapeHTML(v.initiative.title || 'Sin título')}</strong></td>
+                <td>${v.analysis.readiness}%</td>
+                <td>${v.analysis.flags.length}</td>
+                <td><span class="status-badge ${v.humanDecision.decision ? 'badge-success' : 'badge-warning'}">${escapeHTML(v.humanDecision.decision || 'Pendiente')}</span></td>
+                <td><button type="button" class="btn btn-secondary" style="padding:4px 10px; font-size:0.8rem;" data-load="${idx}">Cargar</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    // Eventos e Interacciones
+    $('btn-analyze').onclick = renderAnalysis;
+
+    $('btn-save').onclick = () => {
+      const snap = createSnapshot();
+      if (!snap.initiative.title) {
+        $('status-toast').textContent = '⚠️ Ingresa al menos el nombre de la iniciativa antes de guardar.';
+        return;
+      }
+      const list = getSavedVersions();
+      list.unshift(snap);
+      saveVersions(list.slice(0, 20));
+      renderHistoryTable();
+      $('status-toast').textContent = '✓ Versión guardada en el historial local.';
+    };
+
+    $('btn-export').onclick = () => {
+      const snap = createSnapshot();
+      const blob = new Blob([JSON.stringify(snap, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `gemini-dictamen-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      $('status-toast').textContent = '✓ Informe JSON generado y descargado.';
+    };
+
+    $('btn-print').onclick = () => {
+      renderAnalysis();
+      window.print();
+    };
+
+    $('history-container').onclick = (e) => {
+      const btn = e.target.closest('[data-load]');
+      if (!btn) return;
+      const index = Number(btn.dataset.load);
+      const snap = getSavedVersions()[index];
+      if (!snap) return;
+
+      FIELD_IDS.forEach(id => $(id).value = snap.initiative[id] \vert{}\vert{} '');$('decision').value = snap.humanDecision.decision || '';
+      $('rationale').value = snap.humanDecision.rationale \vert{}\vert{} '';$('reviewer').value = snap.humanDecision.reviewer || '';
+
+      renderAnalysis();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      $('status-toast').textContent = '✓ Registro cargado en el formulario.';
+    };
+
+    $('btn-wipe').onclick = () => {
+      if (confirm('¿Deseas eliminar todas las versiones guardadas en este navegador?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        renderHistoryTable();
+        $('status-toast').textContent = 'Historial limpiado.';
+      }
+    };
+
+    $('btn-clear').onclick = () => {
+      FIELD_IDS.forEach(id => {
+        const el = $(id);
+        el.value = el.tagName === 'SELECT' ? '0' : '';
+      });
+      $('decision').value = '';$('rationale').value = '';
+      $('reviewer').value = '';$('result-display').innerHTML = '<p style="color:var(--text-muted);">Formulario reajustado. Completa datos y pulsa Analizar.</p>';
+      $('status-toast').textContent = 'Formulario vaciado.';
+    };
+
+    $('btn-sample').onclick = () => {
+      const sample = {
+        title: 'Asistente Institucional para Trámites de Estudiantes',
+        problem: 'En una muestra de 50 consultas de estudiantes, 22 llegaron con documentos faltantes, generando un retraso promedio de 3 días hábiles en la gestión.',
+        users: 'Estudiantes universitarios de pregrado y personal administrativo de atención en ventanilla.',
+        proposal: 'Desplegar un portal guía que valida requisitos previos mediante preguntas paso a paso antes de permitir el envío del trámite.',
+        alternatives: 'Crear un folleto en PDF o actualizar la lista de preguntas frecuentes estáticas.',
+        urgency: '2',
+        scope: '2',
+        data: 'Reglamentos estudiantiles vigentes y guías de trámites aprobadas por la Secretaría General. Sin datos personales.',
+        risks: 'Riesgo de información desactualizada si cambian los reglamentos. Se requiere auditoría mensual de contenidos.',
+        owner: 'Oficina de Admisiones + Dirección de Tecnología',
+        metric: 'Línea base: 44% de trámites incompletos. Meta: reducir a menos del 15% en el primer semestre.',
+        resources: 'Piloto de 6 semanas, 1 gestor de contenidos a medio tiempo y servidor web existente.'
+      };
+
+      FIELD_IDS.forEach(id => $(id).value = sample[id] || '');
+      $('decision').value = 'Explorar en piloto';$('rationale').value = 'Aprobado para prueba de 6 semanas con evaluación intermedia de métricas.';
+      $('reviewer').value = 'Comité de Innovación';
+      renderAnalysis();
+    };
+
+    // Inicializar la tabla al cargar
+    renderHistoryTable();
+  </script>
+</body>
+</html>
